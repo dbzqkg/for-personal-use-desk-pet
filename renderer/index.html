@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>Live2D Pet</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+      user-select: none;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    /* 调整大小模式边框（双击宠物显示/隐藏） */
+    #resize-frame {
+      position: fixed;
+      inset: 0;
+      display: none;
+      border: 2px dashed rgba(255, 255, 255, 0.9);
+      border-radius: 8px;
+      box-sizing: border-box;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(0, 0, 0, 0.5);
+      pointer-events: none;
+      z-index: 10;
+    }
+    #resize-handle {
+      position: absolute;
+      right: -8px;
+      bottom: -8px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      border: 2px solid #666;
+      cursor: nwse-resize;
+      pointer-events: auto;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    }
+    #resize-handle::after {
+      content: '';
+      position: absolute;
+      right: 4px;
+      bottom: 4px;
+      width: 8px;
+      height: 8px;
+      border-right: 2px solid #666;
+      border-bottom: 2px solid #666;
+    }
+    #resize-label {
+      position: absolute;
+      left: 50%;
+      top: -22px;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      font: 12px sans-serif;
+      padding: 2px 10px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+    /* 摄像头预览小窗 */
+    video.cam-preview {
+      position: fixed;
+      right: 8px;
+      bottom: 8px;
+      width: 120px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      background: #000;
+      transform: scaleX(-1);
+      z-index: 30;
+      pointer-events: none;
+    }
+    /* AI 对话气泡 */
+    #chat-bubble {
+      position: fixed;
+      left: 50%;
+      top: 6px;
+      transform: translateX(-50%);
+      max-width: 92%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.95);
+      background-size: cover;
+      background-position: center;
+      color: #333;
+      font: 13px/1.5 sans-serif;
+      white-space: pre-wrap;
+      word-break: break-word;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      z-index: 40;
+      display: none;
+      pointer-events: none;
+    }
+    #chat-bubble::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: -8px;
+      transform: translateX(-50%);
+      border: 8px solid transparent;
+      border-top-color: rgba(255, 255, 255, 0.95);
+    }
+    #chat-bubble .think-box {
+      font-size: 11px;
+      color: #888;
+      max-height: 120px;
+      overflow-y: auto;
+      border-bottom: 1px dashed #ddd;
+      margin-bottom: 6px;
+      padding-bottom: 6px;
+    }
+    /* 对话输入条（调整边框模式内显示） */
+    #chat-bar {
+      position: fixed;
+      left: 50%;
+      top: 6px;
+      transform: translateX(-50%);
+      width: 94%;
+      display: none;
+      gap: 6px;
+      z-index: 40;
+    }
+    #chat-bar input {
+      flex: 1;
+      min-width: 0;
+      padding: 6px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.25);
+      background: rgba(255, 255, 255, 0.95);
+      font: 13px sans-serif;
+      outline: none;
+    }
+    #chat-bar button {
+      padding: 6px 14px;
+      border-radius: 14px;
+      border: none;
+      background: #e0557a;
+      color: #fff;
+      font: 13px sans-serif;
+      cursor: pointer;
+    }
+    #chat-mic-btn { padding: 6px 10px; }
+    #chat-mic-btn.listening { background: #d33; animation: micpulse 1s infinite; }
+    @keyframes micpulse { 50% { opacity: 0.6; } }
+    /* 录音中：模型右下角麦克风图标 */
+    #mic-indicator {
+      position: fixed;
+      right: 8px;
+      bottom: 8px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.92);
+      border: 2px solid #e33;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      z-index: 50;
+      pointer-events: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      animation: micpulse 1s infinite;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+  <div id="chat-bubble"></div>
+  <div id="chat-bar">
+    <input id="chat-input" type="text" placeholder="和テト说点什么…（回车发送）" maxlength="500" />
+    <button id="chat-mic-btn" title="语音输入">🎤</button>
+    <button id="chat-send-btn">发送</button>
+  </div>
+  <div id="mic-indicator">🎤</div>
+  <div id="resize-frame">
+    <div id="resize-label">100%</div>
+    <div id="resize-handle"></div>
+  </div>
+  <script src="../vendor/live2dcubismcore.min.js"></script>
+  <script src="../node_modules/pixi.js/dist/browser/pixi.min.js"></script>
+  <script src="../node_modules/pixi-live2d-display/dist/cubism4.min.js"></script>
+  <script type="module">
+    // MediaPipe 面部检测（懒加载：摄像头开启时才真正初始化）
+    import { FaceLandmarker, FilesetResolver } from '../node_modules/@mediapipe/tasks-vision/vision_bundle.mjs';
+    window.__mediapipe = { FaceLandmarker, FilesetResolver };
+  </script>
+  <script src="./renderer.js"></script>
+</body>
+</html>

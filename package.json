@@ -1,0 +1,49 @@
+{
+  "name": "live2d-desktop-pet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Live2D 桌宠 - 视线跟随鼠标、点击部位触发动作、多模型切换、可调大小",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "smoke": "electron . --smoke",
+    "diag": "electron . --diag",
+    "dist": "electron-builder --win portable --x64"
+  },
+  "build": {
+    "appId": "com.pet.live2ddeskpet",
+    "productName": "Live2D桌宠",
+    "asar": false,
+    "npmRebuild": false,
+    "electronDist": "node_modules/electron/dist",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**",
+      "vendor/**",
+      "assets/**",
+      "models/**",
+      "node_modules/**",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "icon": "build/icon.ico"
+    }
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^1.0.1",
+    "opencc-js": "^1.4.1",
+    "pixi-live2d-display": "0.4.0",
+    "pixi.js": "6.5.10"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^26.15.3"
+  }
+}

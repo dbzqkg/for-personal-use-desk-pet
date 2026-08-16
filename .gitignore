@@ -1,0 +1,15 @@
+node_modules/
+.npm-cache/
+.electron-cache/
+dist/
+build/
+vendor/piper/
+vendor/whisper/
+vendor/sherpa/
+vendor/cosy/
+vendor/python/
+vendor/*.exe
+.tmp/
+.modelscope/
+smoke.png
+*.log

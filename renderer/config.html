@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI 对话设置</title>
+  <style>
+    body { font: 14px sans-serif; margin: 0; padding: 18px; background: #f7f3f5; color: #333; }
+    h2 { margin: 0 0 14px; font-size: 16px; color: #b03a63; }
+    label { display: block; margin: 12px 0 4px; font-weight: 600; font-size: 13px; }
+    input[type=password], input[type=text], select { width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid #ccc; border-radius: 6px; font-size: 13px; }
+    input[type=range] { width: 100%; box-sizing: border-box; margin: 2px 0 6px; }
+    .row { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; }
+    .row label { margin: 0; font-weight: 400; }
+    .hint { font-size: 12px; color: #888; margin-top: 2px; }
+    button { margin-top: 16px; width: 100%; padding: 9px; border: none; border-radius: 8px; background: #e0557a; color: #fff; font-size: 14px; cursor: pointer; }
+    #status { margin-top: 8px; font-size: 12px; color: #2a9d4a; min-height: 16px; }
+  </style>
+</head>
+<body>
+  <h2>AI 对话设置</h2>
+  <label>DeepSeek API Key</label>
+  <input id="apiKey" type="password" placeholder="sk-..." />
+  <div class="hint">密钥仅保存在本机配置文件，不会上传到任何地方</div>
+  <label>模型</label>
+  <select id="model">
+    <option value="deepseek-v4-flash">deepseek-v4-flash（快速）</option>
+    <option value="deepseek-v4-pro">deepseek-v4-pro（高质量）</option>
+  </select>
+  <label>人设</label>
+  <select id="persona">
+    <option value="default">活泼（默认）</option>
+    <option value="cool">高冷</option>
+    <option value="gentle">温柔</option>
+  </select>
+  <label>记忆轮数</label>
+  <select id="historyRounds">
+    <option value="10">10 轮</option>
+    <option value="20">20 轮</option>
+    <option value="30">30 轮</option>
+    <option value="50">50 轮</option>
+  </select>
+  <label>气泡显示时长</label>
+  <select id="bubbleTime">
+    <option value="5">5 秒</option>
+    <option value="8">8 秒</option>
+    <option value="12">12 秒</option>
+  </select>
+  <div class="row">
+    <input id="voice" type="checkbox" />
+    <label for="voice">语音朗读回复</label>
+  </div>
+  <label>输出设备（接变声器：选择变声器的虚拟声卡）</label>
+  <select id="outputDevice">
+    <option value="">系统默认输出</option>
+  </select>
+  <label>输入设备（语音输入用的麦克风）</label>
+  <select id="inputDevice">
+    <option value="">系统默认输入</option>
+  </select>
+  <label>麦克风交互方式</label>
+  <select id="micMode">
+    <option value="click">点击说话 / 再点关闭</option>
+    <option value="hold">长按说话 / 松开结束</option>
+    <option value="always">全程监听（自动识别并发送）</option>
+  </select>
+  <label>朗读回声抑制（秒）：<span id="ttsEchoDelayVal">0.1</span></label>
+  <input id="ttsEchoDelay" type="range" min="0" max="10" step="0.5" value="0.1" />
+  <div class="hint">テト朗读结束后暂停监听这么久，防止麦克风把自己的朗读声又识别成你的话。接变声器（有延迟）建议 4~8 秒</div>
+  <label>语音识别灵敏度（VAD 阈值 0.1~0.95）</label>
+  <input id="vadThold" type="number" min="0.1" max="0.95" step="0.05" />
+  <div class="hint">越大越不容易被风扇/噪声误触发，但小声说话可能漏检；0.75 为默认，风扇吵可选 0.9。保存后立即生效</div>
+  <div class="row">
+    <input id="webSearch" type="checkbox" />
+    <label for="webSearch">联网搜索（模型自己决定要不要搜，需要时回复稍慢几秒）</label>
+  </div>
+  <div class="row">
+    <input id="thinking" type="checkbox" />
+    <label for="thinking">思考模式（气泡里显示模型思考过程，更耗 token）</label>
+  </div>
+  <button id="save">保存</button>
+  <div id="status"></div>
+  <script src="./config.js"></script>
+</body>
+</html>
